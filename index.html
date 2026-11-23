@@ -112,7 +112,7 @@
                         <!-- Google Profile Header: Avatar, Name, Email & Role -->
                         <div class="flex items-start gap-3 pb-3.5 border-b border-slate-100">
                             <div class="relative shrink-0">
-                                <div id="user-avatar-badge" class="w-11 h-11 rounded-full bg-emerald-600 text-white font-bold text-sm flex items-center justify-center shadow-xs">
+                                <div id="user-avatar-badge" class="w-11 h-11 rounded-full bg-emerald-600 text-white font-bold text-sm flex items-center justify-center shadow-xs overflow-hidden">
                                     D
                                 </div>
                                 <!-- Google Profile Indicator Badge -->
@@ -476,6 +476,7 @@
         const HARDCODED_ADMIN_EMAIL = 'director@spmniwas.in';
         const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
         const ITEMS_PER_PAGE = 25;
+        const MIN_WORDS = 3;
         const MAX_WORDS = 50;
 
         // Application State
@@ -776,7 +777,8 @@
                         if (matchedUser) {
                             userProfile = {
                                 name: parsed.name || matchedUser.name || deriveNameFromEmail(cleanEmail),
-                                email: cleanEmail
+                                email: cleanEmail,
+                                photoURL: parsed.photoURL || ''
                             };
                             previewRole = isAdminEmail(cleanEmail) ? 'admin' : 'user';
                             return;
@@ -790,7 +792,8 @@
             if (isPreviewSandbox) {
                 userProfile = {
                     name: 'Director',
-                    email: HARDCODED_ADMIN_EMAIL
+                    email: HARDCODED_ADMIN_EMAIL,
+                    photoURL: ''
                 };
                 previewRole = 'admin';
                 saveSession();
@@ -815,8 +818,13 @@
                 : isAdminEmail(userProfile.email);
             const displayName = userProfile.name || deriveNameFromEmail(userProfile.email);
             const initial = displayName.charAt(0).toUpperCase() || 'D';
+            const livePhotoURL = userProfile.photoURL || (auth && auth.currentUser && auth.currentUser.photoURL) || '';
 
-            userAvatarBadge.textContent = initial;
+            if (livePhotoURL) {
+                userAvatarBadge.innerHTML = `<img src="${escapeHTML(livePhotoURL)}" alt="${escapeHTML(displayName)}" referrerpolicy="no-referrer" class="w-full h-full object-cover rounded-full" onerror="this.parentElement.textContent='${escapeHTML(initial)}'">`;
+            } else {
+                userAvatarBadge.textContent = initial;
+            }
             userDisplayName.textContent = displayName;
             userDisplayEmail.textContent = userProfile.email;
 
@@ -854,10 +862,9 @@
             saveSession();
             updateUserProfileUI();
             renderAll();
-            showToast(`Switched preview to ${role === 'admin' ? 'Admin' : 'User'} View`);
         }
 
-        async function attemptGoogleLogin(emailInput, customDisplayName) {
+        async function attemptGoogleLogin(emailInput, customDisplayName, customPhotoURL) {
             const normalizedEmail = (emailInput || '').trim().toLowerCase();
             loginErrorMsg.classList.add('hidden');
 
@@ -895,9 +902,12 @@
                 return;
             }
 
+            const resolvedPhotoURL = customPhotoURL || (auth && auth.currentUser && auth.currentUser.photoURL) || (userProfile && userProfile.email === normalizedEmail ? userProfile.photoURL : '') || '';
+
             userProfile = {
                 name: customDisplayName || (authorizedEntry && authorizedEntry.name) || deriveNameFromEmail(normalizedEmail),
-                email: normalizedEmail
+                email: normalizedEmail,
+                photoURL: resolvedPhotoURL
             };
             previewRole = isAdminEmail(normalizedEmail) ? 'admin' : 'user';
             saveSession();
@@ -917,7 +927,7 @@
                 const result = await signInWithPopup(auth, googleProvider);
                 const fbUser = result.user;
                 if (fbUser && fbUser.email) {
-                    attemptGoogleLogin(fbUser.email, fbUser.displayName || '');
+                    attemptGoogleLogin(fbUser.email, fbUser.displayName || '', fbUser.photoURL || '');
                 }
             } catch (err) {
                 console.error('Google Sign-In error:', err);
@@ -1184,14 +1194,30 @@
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const isError = type === 'error';
-            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-lg border text-xs font-semibold flex items-center gap-2.5 transition-all duration-300 transform translate-y-2 opacity-0 ${
-                isError
-                    ? 'bg-rose-600 text-white border-rose-500'
-                    : 'bg-slate-900 text-white border-slate-800'
-            }`;
+
+            let containerStyle = 'bg-slate-900 text-white border-slate-800';
+            let indicatorHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>';
+
+            if (type === 'error') {
+                containerStyle = 'bg-rose-600 text-white border-rose-500';
+                indicatorHTML = '<span class="w-2 h-2 rounded-full bg-rose-200 shrink-0"></span>';
+            } else if (type === 'closed') {
+                containerStyle = 'bg-emerald-700 text-white border-emerald-600';
+                indicatorHTML = `
+                    <svg class="w-4 h-4 text-emerald-200 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                    </svg>`;
+            } else if (type === 'abandoned') {
+                containerStyle = 'bg-amber-700 text-white border-amber-600';
+                indicatorHTML = `
+                    <svg class="w-4 h-4 text-amber-200 shrink-0" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                    </svg>`;
+            }
+
+            toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-lg border text-xs font-semibold flex items-center gap-2.5 transition-all duration-300 transform translate-y-2 opacity-0 ${containerStyle}`;
             toast.innerHTML = `
-                <span class="w-2 h-2 rounded-full ${isError ? 'bg-rose-200' : 'bg-emerald-400'}"></span>
+                ${indicatorHTML}
                 <span>${escapeHTML(message)}</span>
             `;
             container.appendChild(toast);
@@ -1203,7 +1229,7 @@
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => toast.remove(), 300);
-            }, 2600);
+            }, 2800);
         }
 
         function openConfirmDialog({ title, message, confirmLabel, variant, onConfirm }) {
@@ -1728,6 +1754,7 @@
             const isEditable = eff === 'Active' || eff === 'Overdue';
             const overdue = eff === 'Overdue';
             const wordCount = countWords(tasklet.description);
+            const hasMinWords = wordCount >= MIN_WORDS;
 
             if (isEditable) {
                 detailPaneEl.innerHTML = `
@@ -1799,9 +1826,9 @@
                                 <textarea
                                     id="detail-description-input"
                                     rows="5"
-                                    placeholder="Summarize progress, outcome, or reason before closing or abandoning (max 50 words)..."
+                                    placeholder="Summarize progress, outcome, or reason before closing or abandoning (min 3 words, max 50 words)..."
                                     class="w-full p-3.5 sm:p-4 rounded-2xl border ${
-                                        state.showInlineWarning && !tasklet.description.trim()
+                                        state.showInlineWarning && !hasMinWords
                                             ? 'border-rose-400 ring-2 ring-rose-500/20'
                                             : 'border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
                                     } text-base sm:text-sm text-slate-800 placeholder-slate-400 leading-relaxed outline-none transition resize-none"
@@ -1811,14 +1838,14 @@
                                 </p>
                             </div>
 
-                            <!-- Inline Warning Banner when Description is Empty -->
+                            <!-- Inline Warning Banner when Description has fewer than 3 words -->
                             <div id="inline-description-warning" class="${
-                                state.showInlineWarning && !tasklet.description.trim() ? 'flex' : 'hidden'
+                                state.showInlineWarning && !hasMinWords ? 'flex' : 'hidden'
                             } p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium items-center gap-2.5">
                                 <svg class="w-4 h-4 shrink-0 text-amber-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                                 </svg>
-                                <span>Enter a description above to enable Abandoned / Close</span>
+                                <span>Enter at least ${MIN_WORDS} words in Description to enable Abandoned / Close</span>
                             </div>
 
                             <!-- Action Buttons Directly Below Description Box -->
@@ -1880,7 +1907,7 @@
                     wordCounterEl.textContent = `${count} / ${MAX_WORDS} words`;
                     wordCounterEl.className = `font-semibold ${count >= MAX_WORDS ? 'text-amber-600' : 'text-slate-600'}`;
 
-                    if (capped.trim().length > 0 && state.showInlineWarning) {
+                    if (count >= MIN_WORDS && state.showInlineWarning) {
                         state.showInlineWarning = false;
                         inlineWarningEl.classList.add('hidden');
                         inlineWarningEl.classList.remove('flex');
@@ -1910,7 +1937,7 @@
                     const latestDesc = enforceWordLimit(descInput.value, MAX_WORDS);
                     commitDescription(latestDesc);
 
-                    if (!latestDesc.trim()) {
+                    if (countWords(latestDesc) < MIN_WORDS) {
                         state.showInlineWarning = true;
                         inlineWarningEl.classList.remove('hidden');
                         inlineWarningEl.classList.add('flex');
@@ -1935,7 +1962,12 @@
                             state.mobileView = 'list';
                             syncTaskletToCloud(tasklet);
                             renderAll();
-                            showToast(`Tasklet #${tasklet.seq} marked as ${targetStatus}.`);
+                            showToast(
+                                isAbandon
+                                    ? `Tasklet #${tasklet.seq} abandoned.`
+                                    : `Tasklet #${tasklet.seq} closed.`,
+                                isAbandon ? 'abandoned' : 'closed'
+                            );
                         }
                     });
                 }
@@ -2201,7 +2233,7 @@
         if (auth && hasValidFirebaseConfig && !isPreviewSandbox) {
             onAuthStateChanged(auth, (fbUser) => {
                 if (fbUser && fbUser.email) {
-                    attemptGoogleLogin(fbUser.email, fbUser.displayName || '');
+                    attemptGoogleLogin(fbUser.email, fbUser.displayName || '', fbUser.photoURL || '');
                 } else {
                     stopFirestoreSync();
                     userProfile = null;
