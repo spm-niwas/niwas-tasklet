@@ -127,39 +127,49 @@
                             </div>
                             <div class="min-w-0 flex-1">
                                 <p id="user-display-name" class="text-sm font-bold text-slate-900 truncate">Director</p>
-                                <p id="user-display-email" class="text-xs text-slate-500 truncate mt-0.5">director@spmniwas.in</p>
-                                <p id="user-role-pill" class="text-xs font-normal text-slate-500 mt-1">
-                                    Admin
-                                </p>
+                                <p id="user-display-email" class="text-xs text-slate-500 truncate">director@spmniwas.in</p>
+                                <p id="user-role-pill" class="text-xs font-normal text-slate-500 mt-1">Admin</p>
                             </div>
                         </div>
 
-                        <div class="pt-2 flex items-center justify-between gap-2">
-                            <!-- Admin-Only Add User Menu Item (Opens Add User Panel in Right Workspace Pane) -->
-                            <div id="admin-whitelist-section" class="hidden flex-1">
+                        <div class="pt-2.5 flex flex-col gap-2">
+                            <!-- Admin-Only Menu Items in One Row -->
+                            <div id="admin-whitelist-section" class="hidden grid grid-cols-2 gap-1.5 pb-2 border-b border-slate-100">
                                 <button
                                     id="toggle-add-user-btn"
                                     type="button"
-                                    class="w-full px-3 py-2 rounded-xl text-left text-slate-700 hover:bg-slate-100 hover:text-slate-900 text-xs font-medium transition flex items-center gap-2"
+                                    class="w-full px-2.5 py-2 rounded-xl justify-center text-slate-700 hover:bg-slate-100 hover:text-slate-900 text-xs font-medium transition flex items-center gap-1.5"
                                 >
                                     <svg class="w-4 h-4 text-slate-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
                                     </svg>
-                                    <span>Add User</span>
+                                    <span class="truncate">Add User</span>
+                                </button>
+                                <button
+                                    id="toggle-clear-data-btn"
+                                    type="button"
+                                    class="w-full px-2.5 py-2 rounded-xl justify-center text-rose-600 hover:bg-rose-50 text-xs font-medium transition flex items-center gap-1.5"
+                                >
+                                    <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                    <span class="truncate">Clear Data</span>
                                 </button>
                             </div>
 
-                            <!-- Logout Button -->
-                            <button
-                                id="logout-btn"
-                                type="button"
-                                class="px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-medium transition flex items-center gap-2 ml-auto"
-                            >
-                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                </svg>
-                                <span>Logout</span>
-                            </button>
+                            <!-- Logout Button at Bottom Right -->
+                            <div class="flex justify-end">
+                                <button
+                                    id="logout-btn"
+                                    type="button"
+                                    class="px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 text-xs font-medium transition flex items-center gap-1.5"
+                                >
+                                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                                    </svg>
+                                    <span>Logout</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -487,7 +497,7 @@
             currentPage: 1,
             selectedId: null,
             showInlineWarning: false,
-            rightPanelMode: 'tasklet', // 'tasklet' | 'addUser'
+            rightPanelMode: 'tasklet', // 'tasklet' | 'addUser' | 'clearData'
             mobileView: 'list' // 'list' | 'detail' (used below 1024px)
         };
 
@@ -539,6 +549,7 @@
         const userRolePill = document.getElementById('user-role-pill');
         const adminWhitelistSection = document.getElementById('admin-whitelist-section');
         const toggleAddUserBtn = document.getElementById('toggle-add-user-btn');
+        const toggleClearDataBtn = document.getElementById('toggle-clear-data-btn');
         const logoutBtn = document.getElementById('logout-btn');
         const floatingRoleSwitcher = document.getElementById('floating-role-switcher');
         const floatingAdminViewBtn = document.getElementById('floating-admin-view-btn');
@@ -841,7 +852,7 @@
             }
 
             adminWhitelistSection.classList.toggle('hidden', !showAdminUI);
-            if (!showAdminUI && state.rightPanelMode === 'addUser') {
+            if (!showAdminUI && (state.rightPanelMode === 'addUser' || state.rightPanelMode === 'clearData')) {
                 state.rightPanelMode = 'tasklet';
             }
         }
@@ -1000,6 +1011,18 @@
                 const nameInput = document.getElementById('right-pane-user-name-input');
                 if (nameInput) nameInput.focus();
             }, 40);
+        });
+
+        toggleClearDataBtn.addEventListener('click', () => {
+            const isAdmin = isPreviewSandbox
+                ? previewRole === 'admin'
+                : (userProfile && isAdminEmail(userProfile.email));
+            if (!userProfile || !isAdmin) return;
+            settingsDropdown.classList.add('hidden');
+            state.rightPanelMode = 'clearData';
+            state.mobileView = 'detail';
+            syncMobilePaneVisibility();
+            renderDetailPane();
         });
 
         floatingAdminViewBtn.addEventListener('click', () => switchPreviewRole('admin'));
@@ -1722,12 +1745,214 @@
             });
         }
 
+        function renderClearDataRightPanel() {
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const todayStr = `${yyyy}-${mm}-${dd}`;
+
+            detailPaneEl.innerHTML = `
+                <div class="flex-1 flex flex-col space-y-5 sm:space-y-6">
+                    <!-- Mobile Back Navigation Bar -->
+                    <div class="lg:hidden pb-2 border-b border-slate-100">
+                        <button
+                            id="mobile-back-from-clear-btn"
+                            type="button"
+                            class="inline-flex items-center gap-1.5 px-3 py-2 -ml-1 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 active:bg-slate-200/70 transition"
+                        >
+                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <span>Back to Tasklets</span>
+                        </button>
+                    </div>
+
+                    <!-- Top Header -->
+                    <div class="flex items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Clear Tasklet Data</h2>
+                                <p class="text-xs text-slate-500 mt-0.5">Permanently delete tasklets by date range or clear all records</p>
+                            </div>
+                        </div>
+                        <button
+                            id="close-right-clear-data-btn"
+                            type="button"
+                            class="hidden lg:flex px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-600 transition items-center gap-1.5"
+                        >
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            <span>Back to Tasklet</span>
+                        </button>
+                    </div>
+
+                    <!-- Date Selection Menu -->
+                    <div class="space-y-4 max-w-lg">
+                        <div>
+                            <label for="clear-data-mode-select" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                Deletion Scope
+                            </label>
+                            <select
+                                id="clear-data-mode-select"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-base sm:text-sm text-slate-900 bg-white outline-none transition"
+                            >
+                                <option value="before">Delete tasklets on or before selected date</option>
+                                <option value="after">Delete tasklets from selected date onwards</option>
+                                <option value="all">Clear ALL tasklets (entire history)</option>
+                            </select>
+                        </div>
+
+                        <div id="clear-data-date-group">
+                            <label for="clear-data-date-input" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
+                                Reference Date <span class="text-rose-500">*</span>
+                            </label>
+                            <input
+                                id="clear-data-date-input"
+                                type="date"
+                                value="${todayStr}"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 text-base sm:text-sm text-slate-900 outline-none transition"
+                            >
+                            <p class="text-[11px] text-slate-400 mt-1">Evaluated against each tasklet’s creation date.</p>
+                        </div>
+
+                        <!-- Live Preview Banner -->
+                        <div id="clear-data-preview-box" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 flex items-center justify-between gap-3">
+                            <span class="text-xs font-medium text-slate-600">Matching tasklets to delete:</span>
+                            <span id="clear-data-match-count" class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-700 text-xs font-bold">0</span>
+                        </div>
+
+                        <div class="pt-1 flex items-center gap-2.5">
+                            <button
+                                id="execute-clear-data-btn"
+                                type="button"
+                                class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 disabled:opacity-40 disabled:pointer-events-none text-white text-sm font-semibold shadow-sm shadow-rose-600/20 transition flex items-center gap-2"
+                            >
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                <span>Delete Selected Data</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const closeBtn = document.getElementById('close-right-clear-data-btn');
+            const mobileBackBtn = document.getElementById('mobile-back-from-clear-btn');
+            const modeSelect = document.getElementById('clear-data-mode-select');
+            const dateGroup = document.getElementById('clear-data-date-group');
+            const dateInput = document.getElementById('clear-data-date-input');
+            const matchCountEl = document.getElementById('clear-data-match-count');
+            const executeBtn = document.getElementById('execute-clear-data-btn');
+
+            function getMatchingTaskletsForDeletion() {
+                const mode = modeSelect.value;
+                if (mode === 'all') {
+                    return [...state.tasklets];
+                }
+                const dateVal = dateInput.value;
+                if (!dateVal) return [];
+                const [y, m, d] = dateVal.split('-').map(Number);
+                if (mode === 'before') {
+                    const cutoffEnd = new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
+                    return state.tasklets.filter((t) => {
+                        const ts = new Date(t.createdAtISO || t.deadlineISO).getTime();
+                        return !isNaN(ts) && ts <= cutoffEnd;
+                    });
+                } else {
+                    const cutoffStart = new Date(y, m - 1, d, 0, 0, 0, 0).getTime();
+                    return state.tasklets.filter((t) => {
+                        const ts = new Date(t.createdAtISO || t.deadlineISO).getTime();
+                        return !isNaN(ts) && ts >= cutoffStart;
+                    });
+                }
+            }
+
+            function refreshClearPreview() {
+                const isAll = modeSelect.value === 'all';
+                dateGroup.classList.toggle('hidden', isAll);
+                const matches = getMatchingTaskletsForDeletion();
+                matchCountEl.textContent = `${matches.length} of ${state.tasklets.length}`;
+                executeBtn.disabled = matches.length === 0;
+            }
+
+            modeSelect.addEventListener('change', refreshClearPreview);
+            dateInput.addEventListener('change', refreshClearPreview);
+            refreshClearPreview();
+
+            closeBtn.addEventListener('click', () => {
+                state.rightPanelMode = 'tasklet';
+                renderDetailPane();
+            });
+
+            if (mobileBackBtn) {
+                mobileBackBtn.addEventListener('click', () => {
+                    state.rightPanelMode = 'tasklet';
+                    state.mobileView = 'list';
+                    syncMobilePaneVisibility();
+                });
+            }
+
+            executeBtn.addEventListener('click', () => {
+                const matches = getMatchingTaskletsForDeletion();
+                if (matches.length === 0) return;
+
+                const isAll = modeSelect.value === 'all';
+                const scopeLabel = isAll
+                    ? `all ${matches.length} tasklet(s)`
+                    : `${matches.length} tasklet(s) (${modeSelect.value === 'before' ? 'on or before' : 'from'} ${formatDateDDMMYY(dateInput.value)})`;
+
+                openConfirmDialog({
+                    title: 'Permanently Delete Tasklet Data?',
+                    message: `This will permanently delete ${scopeLabel} from both local storage and cloud sync. This action cannot be undone.`,
+                    confirmLabel: `Delete ${matches.length} Tasklet${matches.length > 1 ? 's' : ''}`,
+                    variant: 'danger',
+                    onConfirm: async () => {
+                        const idsToDelete = new Set(matches.map((t) => t.id));
+                        state.tasklets = state.tasklets.filter((t) => !idsToDelete.has(t.id));
+                        saveToLocalStorage();
+
+                        if (canUseFirestore()) {
+                            await Promise.all(
+                                matches.map((t) =>
+                                    deleteDoc(doc(db, 'tasklets', t.id)).catch((err) =>
+                                        console.error('Failed to delete tasklet from Firestore:', t.id, err)
+                                    )
+                                )
+                            );
+                        }
+
+                        if (idsToDelete.has(state.selectedId)) {
+                            const remaining = getFilteredTasklets();
+                            state.selectedId = remaining.length > 0 ? remaining[0].id : (state.tasklets[0]?.id || null);
+                        }
+
+                        state.rightPanelMode = 'tasklet';
+                        state.mobileView = 'list';
+                        renderAll();
+                        showToast(`Deleted ${matches.length} tasklet${matches.length > 1 ? 's' : ''}.`);
+                    }
+                });
+            });
+        }
+
         function renderDetailPane() {
             const isAdmin = isPreviewSandbox
                 ? previewRole === 'admin'
                 : (userProfile && isAdminEmail(userProfile.email));
             if (state.rightPanelMode === 'addUser' && isAdmin) {
                 renderAddUserRightPanel();
+                return;
+            }
+            if (state.rightPanelMode === 'clearData' && isAdmin) {
+                renderClearDataRightPanel();
                 return;
             }
 
