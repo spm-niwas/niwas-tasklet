@@ -264,9 +264,9 @@
 
             <!-- LEFT PANE (45% on desktop; full-screen List View on mobile) -->
             <section id="list-pane" class="w-full lg:w-[45%] bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
-                <!-- 5 Status Filter Tabs with Live Count Badges -->
-                <div class="p-2.5 sm:p-3 border-b border-slate-100 bg-slate-50/60 overflow-x-auto no-scrollbar shrink-0">
-                    <div id="filter-tabs" class="flex items-center gap-1.5 min-w-max pr-2">
+                <!-- 5 Status Filter Tabs with Live Count Badges (3 + 2 maximized grid on mobile, single row on sm+) -->
+                <div class="p-2.5 sm:p-3 border-b border-slate-100 bg-slate-50/60 shrink-0">
+                    <div id="filter-tabs" class="grid grid-cols-6 sm:flex sm:items-center gap-1.5 w-full">
                         <!-- Tabs rendered dynamically -->
                     </div>
                 </div>
@@ -1346,18 +1346,22 @@
                         badgeClass = 'bg-rose-100 text-rose-700';
                     }
 
+                    const mobileGridSpan = (tab === 'Abandoned' || tab === 'Closed')
+                        ? 'col-span-3 sm:flex-1'
+                        : 'col-span-2 sm:flex-1';
+
                     return `
                         <button
                             type="button"
                             data-filter="${tab}"
-                            class="px-3.5 py-2 sm:py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+                            class="${mobileGridSpan} justify-center px-2.5 sm:px-3 py-2 sm:py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
                                 isActive
                                     ? activeTabClass
                                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
                             }"
                         >
-                            <span>${tab}</span>
-                            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none ${badgeClass}">
+                            <span class="truncate">${tab}</span>
+                            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold leading-none shrink-0 ${badgeClass}">
                                 ${count}
                             </span>
                         </button>
