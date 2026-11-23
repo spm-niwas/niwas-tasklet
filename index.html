@@ -21,26 +21,40 @@
             }
         }
     </script>
+    <style>
+        /* Hide horizontal scrollbar on mobile filter tabs while keeping touch swipe smooth */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        /* Support iOS/Android bottom safe-area insets */
+        .pb-safe {
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans min-h-screen flex flex-col antialiased selection:bg-emerald-600 selection:text-white">
+<body class="bg-slate-50 text-slate-900 font-sans min-h-screen flex flex-col antialiased selection:bg-emerald-600 selection:text-white overflow-x-hidden">
 
     <!-- Top Navigation Bar -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-30">
-        <div class="w-full px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div class="w-full px-3.5 sm:px-6 py-2.5 sm:py-3 flex flex-wrap items-center justify-between gap-2.5 sm:gap-3">
             <!-- Brand Title -->
             <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm shadow-emerald-600/20">
+                <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-sm shadow-emerald-600/20 shrink-0">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-none">NIWAS Tasklet</h1>
+                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-none">NIWAS Tasklet</h1>
                     <p class="text-[11px] font-medium text-slate-400 mt-0.5">Focused Deadline Workspace</p>
                 </div>
             </div>
 
-            <!-- Search Bar -->
+            <!-- Search Bar (16px on mobile prevents iOS Safari auto-zoom) -->
             <div class="order-3 md:order-2 w-full md:w-[28rem] lg:w-[36rem] xl:w-[42rem] relative">
                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -51,7 +65,7 @@
                     id="search-input"
                     type="text"
                     placeholder="Search tasklets by keywords, description, or #number..."
-                    class="w-full pl-10 pr-8 py-2 bg-slate-100/80 hover:bg-slate-100 focus:bg-white text-sm text-slate-800 placeholder-slate-400 rounded-xl border border-transparent focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
+                    class="w-full pl-10 pr-9 py-2 bg-slate-100/80 hover:bg-slate-100 focus:bg-white text-base sm:text-sm text-slate-800 placeholder-slate-400 rounded-xl border border-transparent focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
                 >
                 <button id="clear-search-btn" type="button" class="hidden absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600" title="Clear search">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -66,12 +80,13 @@
                 <button
                     id="open-add-modal-btn"
                     type="button"
-                    class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold rounded-xl shadow-sm shadow-emerald-600/20 transition flex items-center gap-1.5"
+                    class="px-3.5 sm:px-4 py-2 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs sm:text-sm font-semibold rounded-xl shadow-sm shadow-emerald-600/20 transition flex items-center gap-1.5"
                 >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    <span>Add Tasklet</span>
+                    <span class="sm:hidden">Add</span>
+                    <span class="hidden sm:inline">Add Tasklet</span>
                 </button>
 
                 <!-- Settings Gear Menu (Name, Gmail ID & Logout) -->
@@ -92,7 +107,7 @@
                     <!-- Dropdown Card -->
                     <div
                         id="settings-dropdown"
-                        class="hidden absolute right-0 mt-2 w-80 bg-white rounded-2xl border border-slate-200 shadow-xl py-4 px-4 z-50"
+                        class="hidden absolute right-0 mt-2 w-[calc(100vw-1.75rem)] max-w-xs sm:w-80 bg-white rounded-2xl border border-slate-200 shadow-xl py-4 px-4 z-50"
                     >
                         <!-- Google Profile Header: Avatar, Name, Email & Role -->
                         <div class="flex items-start gap-3 pb-3.5 border-b border-slate-100">
@@ -243,21 +258,21 @@
         </button>
     </div>
 
-    <!-- Main Two-Pane Split Workspace (45% Left / 55% Right - Maximized Screen View) -->
-    <main class="flex-1 w-full px-4 sm:px-6 py-4 flex flex-col">
-        <div class="flex-1 flex flex-col lg:flex-row gap-5 items-stretch">
+    <!-- Main Two-Pane Split Workspace (45% Left / 55% Right on Desktop; Native Two-Screen Flow on Mobile) -->
+    <main class="flex-1 w-full px-3 sm:px-6 py-3 sm:py-4 flex flex-col">
+        <div class="flex-1 flex flex-col lg:flex-row gap-4 sm:gap-5 items-stretch">
 
-            <!-- LEFT PANE (45% on desktop) -->
-            <section class="w-full lg:w-[45%] bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
+            <!-- LEFT PANE (45% on desktop; full-screen List View on mobile) -->
+            <section id="list-pane" class="w-full lg:w-[45%] bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden flex flex-col">
                 <!-- 5 Status Filter Tabs with Live Count Badges -->
-                <div class="p-3 border-b border-slate-100 bg-slate-50/60 overflow-x-auto shrink-0">
-                    <div id="filter-tabs" class="flex items-center gap-1.5 min-w-max">
+                <div class="p-2.5 sm:p-3 border-b border-slate-100 bg-slate-50/60 overflow-x-auto no-scrollbar shrink-0">
+                    <div id="filter-tabs" class="flex items-center gap-1.5 min-w-max pr-2">
                         <!-- Tabs rendered dynamically -->
                     </div>
                 </div>
 
                 <!-- Tasklet List (Auto-paginated at 25 per page) -->
-                <div id="tasklet-list" class="flex-1 divide-y divide-slate-100 min-h-[420px] flex flex-col overflow-y-auto">
+                <div id="tasklet-list" class="flex-1 divide-y divide-slate-100 min-h-[360px] sm:min-h-[420px] flex flex-col overflow-y-auto">
                     <!-- Tasklet cards rendered dynamically -->
                 </div>
 
@@ -265,19 +280,19 @@
                 <div id="pagination-bar" class="hidden px-4 py-3 bg-slate-50/70 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 shrink-0">
                     <span id="pagination-info" class="font-medium">Showing 0 of 0</span>
                     <div class="flex items-center gap-1.5">
-                        <button id="prev-page-btn" type="button" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none font-medium transition">
+                        <button id="prev-page-btn" type="button" class="px-3.5 py-2 sm:py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none font-medium transition">
                             Prev
                         </button>
                         <span id="page-indicator" class="px-2 font-semibold text-slate-700">1 / 1</span>
-                        <button id="next-page-btn" type="button" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none font-medium transition">
+                        <button id="next-page-btn" type="button" class="px-3.5 py-2 sm:py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:pointer-events-none font-medium transition">
                             Next
                         </button>
                     </div>
                 </div>
             </section>
 
-            <!-- RIGHT PANE (55% on desktop) -->
-            <section id="detail-pane" class="w-full lg:w-[55%] bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 sm:p-7 min-h-[460px] flex flex-col">
+            <!-- RIGHT PANE (55% on desktop; full-screen Detail View on mobile) -->
+            <section id="detail-pane" class="hidden lg:flex w-full lg:w-[55%] bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 sm:p-7 min-h-[420px] sm:min-h-[460px] flex-col">
                 <!-- Detail view rendered dynamically -->
             </section>
 
@@ -285,31 +300,30 @@
     </main>
 
     <!-- ADD TASKLET MODAL -->
-    <div id="add-modal" class="hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+    <div id="add-modal" class="hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+        <div class="bg-white rounded-t-3xl sm:rounded-2xl border border-slate-200 shadow-xl w-full max-w-md overflow-hidden sm:my-auto max-h-[92dvh] overflow-y-auto pb-safe sm:pb-0">
+            <div class="px-5 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
                 <h2 class="text-base font-bold text-slate-900">Create New Tasklet</h2>
-                <button id="close-add-modal-btn" type="button" class="p-1.5 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition">
+                <button id="close-add-modal-btn" type="button" class="p-2 text-slate-400 hover:text-slate-600 rounded-xl hover:bg-slate-100 transition">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
                 </button>
             </div>
 
-            <form id="add-tasklet-form" class="p-6 space-y-4" novalidate>
+            <form id="add-tasklet-form" class="p-5 sm:p-6 space-y-4" novalidate>
                 <!-- Task Name -->
                 <div>
                     <label for="task-name-input" class="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1.5">
                         Task Name <span class="text-rose-500">*</span>
                     </label>
-                    <input
+                    <textarea
                         id="task-name-input"
-                        type="text"
+                        rows="2"
                         placeholder="e.g., Finalize quarterly architecture review"
-                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm text-slate-900 outline-none transition"
+                        class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-base sm:text-sm text-slate-900 outline-none transition resize-none leading-snug"
                         required
-                    >
-                    <p class="text-[11px] text-slate-400 mt-1">First letter auto-capitalizes automatically.</p>
+                    ></textarea>
                 </div>
 
                 <!-- Mandatory Deadline Date & Time -->
@@ -321,7 +335,7 @@
                         <input
                             id="deadline-date-input"
                             type="date"
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm text-slate-900 outline-none transition"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-base sm:text-sm text-slate-900 outline-none transition"
                             required
                         >
                     </div>
@@ -332,7 +346,7 @@
                         <input
                             id="deadline-time-input"
                             type="time"
-                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm text-slate-900 outline-none transition"
+                            class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-base sm:text-sm text-slate-900 outline-none transition"
                             required
                         >
                     </div>
@@ -398,6 +412,7 @@
             getFirestore,
             collection,
             doc,
+            getDoc,
             setDoc,
             updateDoc,
             deleteDoc,
@@ -471,7 +486,8 @@
             currentPage: 1,
             selectedId: null,
             showInlineWarning: false,
-            rightPanelMode: 'tasklet' // 'tasklet' | 'addUser'
+            rightPanelMode: 'tasklet', // 'tasklet' | 'addUser'
+            mobileView: 'list' // 'list' | 'detail' (used below 1024px)
         };
 
         let saveDebounceTimer = null;
@@ -483,6 +499,7 @@
         const searchInput = document.getElementById('search-input');
         const clearSearchBtn = document.getElementById('clear-search-btn');
         const filterTabsEl = document.getElementById('filter-tabs');
+        const listPaneEl = document.getElementById('list-pane');
         const taskletListEl = document.getElementById('tasklet-list');
         const detailPaneEl = document.getElementById('detail-pane');
         const paginationBarEl = document.getElementById('pagination-bar');
@@ -547,8 +564,12 @@
         // =========================================================================
         // FIRESTORE REAL-TIME LISTENERS & CLOUD SYNC HELPERS
         // =========================================================================
+        function canUseFirestore() {
+            return Boolean(db && auth && auth.currentUser);
+        }
+
         function startFirestoreSync() {
-            if (!db) return;
+            if (!canUseFirestore()) return;
 
             if (unsubscribeUsers) unsubscribeUsers();
             unsubscribeUsers = onSnapshot(
@@ -597,7 +618,14 @@
                         const sorted = getFilteredTasklets();
                         state.selectedId = sorted.length > 0 ? sorted[0].id : state.tasklets[0].id;
                     }
-                    renderAll();
+                    // Preserve focus & active typing in the description textarea during Firestore snapshot updates
+                    const activeEl = document.activeElement;
+                    if (activeEl && activeEl.id === 'detail-description-input') {
+                        renderFilterTabs();
+                        renderTaskletList();
+                    } else {
+                        renderAll();
+                    }
                 },
                 (err) => {
                     console.error('Firestore tasklets listener error:', err);
@@ -618,7 +646,7 @@
 
         async function syncTaskletToCloud(tasklet) {
             saveToLocalStorage();
-            if (!db || !tasklet || !tasklet.id) return;
+            if (!canUseFirestore() || !tasklet || !tasklet.id) return;
             try {
                 await setDoc(doc(db, 'tasklets', tasklet.id), tasklet, { merge: true });
             } catch (err) {
@@ -629,7 +657,7 @@
 
         async function syncAuthorizedUserToCloud(userObj) {
             saveAllowedUsersLocal();
-            if (!db || !userObj || !userObj.email) return;
+            if (!canUseFirestore() || !userObj || !userObj.email) return;
             try {
                 await setDoc(doc(db, 'authorized_users', userObj.email), userObj, { merge: true });
             } catch (err) {
@@ -640,7 +668,7 @@
 
         async function removeAuthorizedUserFromCloud(email) {
             saveAllowedUsersLocal();
-            if (!db || !email || isAdminEmail(email)) return;
+            if (!canUseFirestore() || !email || isAdminEmail(email)) return;
             try {
                 await deleteDoc(doc(db, 'authorized_users', email));
             } catch (err) {
@@ -819,19 +847,17 @@
                 };
             } else {
                 const consultant = allowedUsers.find((u) => !isAdminEmail(u.email));
-                const consultantEmail = consultant ? consultant.email : 'consultant@spmniwas.in';
-                userProfile = {
-                    name: consultant ? consultant.name : deriveNameFromEmail(consultantEmail),
-                    email: consultantEmail
-                };
-                state.rightPanelMode = 'tasklet';
+                userProfile = consultant
+                    ? { name: consultant.name, email: consultant.email }
+                    : { name: 'Consultant Member', email: 'consultant@spmniwas.in' };
             }
             saveSession();
             updateUserProfileUI();
-            renderDetailPane();
+            renderAll();
+            showToast(`Switched preview to ${role === 'admin' ? 'Admin' : 'User'} View`);
         }
 
-        function attemptGoogleLogin(emailInput, customDisplayName) {
+        async function attemptGoogleLogin(emailInput, customDisplayName) {
             const normalizedEmail = (emailInput || '').trim().toLowerCase();
             loginErrorMsg.classList.add('hidden');
 
@@ -839,7 +865,26 @@
                 return;
             }
 
-            const authorizedEntry = allowedUsers.find((u) => u.email === normalizedEmail);
+            let authorizedEntry = allowedUsers.find((u) => u.email === normalizedEmail);
+
+            // On a new device/browser, verify directly against Firestore authorized_users collection
+            if (!authorizedEntry && !isAdminEmail(normalizedEmail) && canUseFirestore()) {
+                try {
+                    const userDocSnap = await getDoc(doc(db, 'authorized_users', normalizedEmail));
+                    if (userDocSnap.exists()) {
+                        const data = userDocSnap.data() || {};
+                        authorizedEntry = {
+                            email: normalizedEmail,
+                            name: capitalizeFirst(String(data.name || deriveNameFromEmail(normalizedEmail)).trim())
+                        };
+                        allowedUsers.push(authorizedEntry);
+                        saveAllowedUsersLocal();
+                    }
+                } catch (err) {
+                    console.warn('Firestore authorization lookup:', err);
+                }
+            }
+
             if (!authorizedEntry && !isAdminEmail(normalizedEmail)) {
                 googleChooserModal.classList.add('hidden');
                 loginErrorMsg.textContent = `Access denied for ${normalizedEmail}. Only accounts added by ${HARDCODED_ADMIN_EMAIL} can sign in.`;
@@ -932,9 +977,14 @@
         });
 
         toggleAddUserBtn.addEventListener('click', () => {
-            if (!userProfile || previewRole !== 'admin') return;
+            const isAdmin = isPreviewSandbox
+                ? previewRole === 'admin'
+                : (userProfile && isAdminEmail(userProfile.email));
+            if (!userProfile || !isAdmin) return;
             settingsDropdown.classList.add('hidden');
             state.rightPanelMode = 'addUser';
+            state.mobileView = 'detail';
+            syncMobilePaneVisibility();
             renderDetailPane();
             setTimeout(() => {
                 const nameInput = document.getElementById('right-pane-user-name-input');
@@ -957,6 +1007,8 @@
             }
             userProfile = null;
             state.rightPanelMode = 'tasklet';
+            state.mobileView = 'list';
+            syncMobilePaneVisibility();
             saveSession();
             updateUserProfileUI();
             showToast('Logged out of NIWAS Tasklet.');
@@ -1245,6 +1297,20 @@
         // =========================================================================
         // RENDERING: LEFT PANE (TABS, LIST, PAGINATION)
         // =========================================================================
+        function syncMobilePaneVisibility() {
+            const isDetailOnMobile = state.mobileView === 'detail';
+            if (isDetailOnMobile) {
+                listPaneEl.classList.add('hidden', 'lg:flex');
+                detailPaneEl.classList.remove('hidden');
+                detailPaneEl.classList.add('flex');
+            } else {
+                listPaneEl.classList.remove('hidden');
+                listPaneEl.classList.add('flex');
+                detailPaneEl.classList.add('hidden', 'lg:flex');
+                detailPaneEl.classList.remove('flex');
+            }
+        }
+
         function renderFilterTabs() {
             const counts = getStatusCounts();
             const tabs = ['All', 'Overdue', 'Active', 'Abandoned', 'Closed'];
@@ -1284,7 +1350,7 @@
                         <button
                             type="button"
                             data-filter="${tab}"
-                            class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
+                            class="px-3.5 py-2 sm:py-1.5 rounded-xl text-xs font-semibold transition flex items-center gap-1.5 ${
                                 isActive
                                     ? activeTabClass
                                     : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
@@ -1304,6 +1370,7 @@
                     state.activeFilter = btn.getAttribute('data-filter');
                     state.currentPage = 1;
                     state.showInlineWarning = false;
+                    state.mobileView = 'list';
                     renderAll();
                 });
             });
@@ -1357,7 +1424,7 @@
                             <button
                                 type="button"
                                 data-id="${t.id}"
-                                class="w-full text-left px-4 py-3.5 transition flex items-start gap-3 hover:bg-slate-50/90 ${
+                                class="w-full text-left px-4 py-4 sm:py-3.5 transition flex items-start gap-3 hover:bg-slate-50/90 active:bg-slate-100/80 ${
                                     isSelected ? 'bg-emerald-50/60 border-l-4 border-l-emerald-600' : 'border-l-4 border-l-transparent'
                                 }"
                             >
@@ -1370,18 +1437,26 @@
                                 </span>
                                 <div class="min-w-0 flex-1">
                                     <div class="flex items-start justify-between gap-2">
-                                        <p class="text-sm font-semibold text-slate-900 truncate">
+                                        <p class="text-sm font-semibold text-slate-900 line-clamp-2 sm:truncate">
                                             ${escapeHTML(t.title)}
                                         </p>
                                         ${statusPill}
                                     </div>
-                                    <div class="mt-1.5 flex items-center gap-1.5 text-xs ${
-                                        overdue ? 'text-rose-600 font-semibold' : 'text-slate-500 font-medium'
-                                    }">
-                                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                        </svg>
-                                        <span>${formatDeadline(t.deadlineISO)}</span>
+                                    <div class="mt-1.5 flex items-center justify-between gap-2">
+                                        <div class="flex items-center gap-1.5 text-xs ${
+                                            overdue ? 'text-rose-600 font-semibold' : 'text-slate-500 font-medium'
+                                        }">
+                                            <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span>${formatDeadline(t.deadlineISO)}</span>
+                                        </div>
+                                        <span class="lg:hidden text-[11px] font-semibold text-emerald-700 flex items-center gap-0.5 shrink-0">
+                                            Open
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+                                            </svg>
+                                        </span>
                                     </div>
                                 </div>
                             </button>
@@ -1393,8 +1468,10 @@
                     row.addEventListener('click', () => {
                         state.selectedId = row.getAttribute('data-id');
                         state.rightPanelMode = 'tasklet';
+                        state.mobileView = 'detail';
                         state.showInlineWarning = false;
                         renderAll();
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
                     });
                 });
             }
@@ -1418,7 +1495,21 @@
         // =========================================================================
         function renderAddUserRightPanel() {
             detailPaneEl.innerHTML = `
-                <div class="flex-1 flex flex-col space-y-6">
+                <div class="flex-1 flex flex-col space-y-5 sm:space-y-6">
+                    <!-- Mobile Back Navigation Bar -->
+                    <div class="lg:hidden pb-2 border-b border-slate-100">
+                        <button
+                            id="mobile-back-from-user-btn"
+                            type="button"
+                            class="inline-flex items-center gap-1.5 px-3 py-2 -ml-1 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 active:bg-slate-200/70 transition"
+                        >
+                            <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                            <span>Back to Tasklets</span>
+                        </button>
+                    </div>
+
                     <!-- Top Header -->
                     <div class="flex items-center justify-between gap-3 pb-4 border-b border-slate-100">
                         <div class="flex items-center gap-3">
@@ -1428,14 +1519,14 @@
                                 </svg>
                             </div>
                             <div>
-                                <h2 class="text-lg font-bold text-slate-900 leading-tight">Add Authorized User</h2>
+                                <h2 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">Add Authorized User</h2>
                                 <p class="text-xs text-slate-500 mt-0.5">Grant Google Sign-In access to a consultant or team member</p>
                             </div>
                         </div>
                         <button
                             id="close-right-add-user-btn"
                             type="button"
-                            class="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-600 transition flex items-center gap-1.5"
+                            class="hidden lg:flex px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-600 transition items-center gap-1.5"
                         >
                             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
@@ -1454,7 +1545,7 @@
                                 id="right-pane-user-name-input"
                                 type="text"
                                 placeholder="e.g., Arjun Sharma"
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm text-slate-900 outline-none transition"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-base sm:text-sm text-slate-900 outline-none transition"
                                 required
                             >
                             <p class="text-[11px] text-slate-400 mt-1">First letter automatically capitalizes.</p>
@@ -1468,7 +1559,7 @@
                                 id="right-pane-user-email-input"
                                 type="email"
                                 placeholder="e.g., consultant@spmniwas.in or user@gmail.com"
-                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-sm text-slate-900 outline-none transition"
+                                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 text-base sm:text-sm text-slate-900 outline-none transition"
                                 required
                             >
                         </div>
@@ -1530,6 +1621,7 @@
             `;
 
             const closeBtn = document.getElementById('close-right-add-user-btn');
+            const mobileBackUserBtn = document.getElementById('mobile-back-from-user-btn');
             const formEl = document.getElementById('right-pane-add-user-form');
             const nameInputEl = document.getElementById('right-pane-user-name-input');
             const emailInputEl = document.getElementById('right-pane-user-email-input');
@@ -1541,16 +1633,13 @@
                 renderDetailPane();
             });
 
-            // Auto-capitalize first letter of Name
-            nameInputEl.addEventListener('input', () => {
-                const val = nameInputEl.value;
-                if (val.length > 0 && val.charAt(0) !== val.charAt(0).toUpperCase()) {
-                    const start = nameInputEl.selectionStart;
-                    const end = nameInputEl.selectionEnd;
-                    nameInputEl.value = capitalizeFirst(val);
-                    nameInputEl.setSelectionRange(start, end);
-                }
-            });
+            if (mobileBackUserBtn) {
+                mobileBackUserBtn.addEventListener('click', () => {
+                    state.rightPanelMode = 'tasklet';
+                    state.mobileView = 'list';
+                    syncMobilePaneVisibility();
+                });
+            }
 
             formEl.addEventListener('submit', async (e) => {
                 e.preventDefault();
@@ -1604,7 +1693,10 @@
         }
 
         function renderDetailPane() {
-            if (state.rightPanelMode === 'addUser' && previewRole === 'admin') {
+            const isAdmin = isPreviewSandbox
+                ? previewRole === 'admin'
+                : (userProfile && isAdminEmail(userProfile.email));
+            if (state.rightPanelMode === 'addUser' && isAdmin) {
                 renderAddUserRightPanel();
                 return;
             }
@@ -1635,10 +1727,25 @@
 
             if (isEditable) {
                 detailPaneEl.innerHTML = `
-                    <div class="flex-1 flex flex-col space-y-5">
-                        <div class="space-y-5">
+                    <div class="flex-1 flex flex-col space-y-4 sm:space-y-5">
+                        <!-- Mobile Back Navigation Bar -->
+                        <div class="lg:hidden pb-2 border-b border-slate-100 flex items-center justify-between">
+                            <button
+                                id="mobile-back-to-list-btn"
+                                type="button"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 -ml-1 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 active:bg-slate-200/70 transition"
+                            >
+                                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                <span>Back to List</span>
+                            </button>
+                            <span class="text-[11px] font-medium text-slate-400">${state.activeFilter}</span>
+                        </div>
+
+                        <div class="space-y-4 sm:space-y-5">
                             <!-- Top Meta Header -->
-                            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100">
+                            <div class="flex flex-wrap items-center justify-between gap-2 pb-3.5 sm:pb-4 border-b border-slate-100">
                                 <div class="flex items-center gap-2">
                                     <span class="px-2.5 py-1 rounded-xl bg-slate-900 text-white text-xs font-bold">
                                         #${tasklet.seq}
@@ -1662,17 +1769,17 @@
                             </div>
 
                             <!-- Tasklet Title -->
-                            <div class="pb-3">
-                                <h2 class="text-xl font-bold text-slate-900 leading-snug">
+                            <div class="pb-1 sm:pb-3">
+                                <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
                                     ${escapeHTML(tasklet.title)}
                                 </h2>
                             </div>
 
-                            <!-- Description Editor (50-word max, debounced auto-save) -->
+                            <!-- Description Editor (50-word max, debounced auto-save, 16px on mobile) -->
                             <div class="space-y-2">
                                 <div class="flex items-center justify-between">
                                     <label for="detail-description-input" class="text-xs font-medium uppercase tracking-wider text-slate-400">
-                                        Resolution / Action Description
+                                        Description
                                     </label>
                                     <div class="flex items-center gap-2 text-xs">
                                         <span id="autosave-status" class="text-slate-400 font-medium">Saved</span>
@@ -1687,13 +1794,13 @@
 
                                 <textarea
                                     id="detail-description-input"
-                                    rows="6"
+                                    rows="5"
                                     placeholder="Summarize progress, outcome, or reason before closing or abandoning (max 50 words)..."
-                                    class="w-full p-4 rounded-2xl border ${
+                                    class="w-full p-3.5 sm:p-4 rounded-2xl border ${
                                         state.showInlineWarning && !tasklet.description.trim()
                                             ? 'border-rose-400 ring-2 ring-rose-500/20'
                                             : 'border-slate-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20'
-                                    } text-sm text-slate-800 placeholder-slate-400 leading-relaxed outline-none transition resize-none"
+                                    } text-base sm:text-sm text-slate-800 placeholder-slate-400 leading-relaxed outline-none transition resize-none"
                                 >${escapeHTML(tasklet.description || '')}</textarea>
                                 <p class="text-xs text-slate-500 text-left pt-0.5">
                                     Created by <span class="font-semibold text-slate-700">${escapeHTML(tasklet.createdBy || (userProfile && userProfile.name) || 'NIWAS Member')}</span> on <span class="font-medium text-slate-600">${formatDeadline(tasklet.createdAtISO)}</span>
@@ -1711,11 +1818,11 @@
                             </div>
 
                             <!-- Action Buttons Directly Below Description Box -->
-                            <div class="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-end gap-3">
+                            <div class="pt-3 border-t border-slate-100 grid grid-cols-2 sm:flex sm:flex-wrap items-center justify-end gap-2.5 sm:gap-3">
                                 <button
                                     id="abandon-tasklet-btn"
                                     type="button"
-                                    class="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm font-semibold transition flex items-center gap-1.5"
+                                    class="w-full sm:w-auto justify-center px-4 py-3 sm:py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-sm font-semibold transition flex items-center gap-1.5"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
@@ -1725,7 +1832,7 @@
                                 <button
                                     id="close-tasklet-btn"
                                     type="button"
-                                    class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-sm shadow-emerald-600/20 transition flex items-center gap-1.5"
+                                    class="w-full sm:w-auto justify-center px-5 py-3 sm:py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold shadow-sm shadow-emerald-600/20 transition flex items-center gap-1.5"
                                 >
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
@@ -1736,6 +1843,14 @@
                         </div>
                     </div>
                 `;
+
+                const mobileBackBtn = document.getElementById('mobile-back-to-list-btn');
+                if (mobileBackBtn) {
+                    mobileBackBtn.addEventListener('click', () => {
+                        state.mobileView = 'list';
+                        syncMobilePaneVisibility();
+                    });
+                }
 
                 // Wire Description Input (50-word cap + 450ms debounce + on blur)
                 const descInput = document.getElementById('detail-description-input');
@@ -1813,6 +1928,7 @@
                             tasklet.status = targetStatus;
                             tasklet.resolvedAtISO = new Date().toISOString();
                             state.showInlineWarning = false;
+                            state.mobileView = 'list';
                             syncTaskletToCloud(tasklet);
                             renderAll();
                             showToast(`Tasklet #${tasklet.seq} marked as ${targetStatus}.`);
@@ -1833,10 +1949,25 @@
                 const resolvedDate = formatDateDDMMYY(tasklet.resolvedAtISO || tasklet.deadlineISO);
 
                 detailPaneEl.innerHTML = `
-                    <div class="flex-1 flex flex-col justify-between space-y-6">
-                        <div class="space-y-5">
+                    <div class="flex-1 flex flex-col justify-between space-y-5 sm:space-y-6">
+                        <div class="space-y-4 sm:space-y-5">
+                            <!-- Mobile Back Navigation Bar -->
+                            <div class="lg:hidden pb-2 border-b border-slate-100 flex items-center justify-between">
+                                <button
+                                    id="mobile-back-readonly-btn"
+                                    type="button"
+                                    class="inline-flex items-center gap-1.5 px-3 py-2 -ml-1 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-100 active:bg-slate-200/70 transition"
+                                >
+                                    <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                    <span>Back to List</span>
+                                </button>
+                                <span class="text-[11px] font-medium text-slate-400">${state.activeFilter}</span>
+                            </div>
+
                             <!-- Top Meta Header -->
-                            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-100">
+                            <div class="flex flex-wrap items-center justify-between gap-2 pb-3.5 sm:pb-4 border-b border-slate-100">
                                 <div class="flex items-center gap-2">
                                     <span class="px-2.5 py-1 rounded-xl bg-slate-900 text-white text-xs font-bold">
                                         #${tasklet.seq}
@@ -1858,8 +1989,8 @@
                             </div>
 
                             <!-- Title -->
-                            <div class="pb-3">
-                                <h2 class="text-xl font-bold text-slate-900 leading-snug text-left">
+                            <div class="pb-1 sm:pb-3">
+                                <h2 class="text-lg sm:text-xl font-bold text-slate-900 leading-snug text-left">
                                     ${escapeHTML(tasklet.title)}
                                 </h2>
                             </div>
@@ -1882,10 +2013,19 @@
                         </div>
                     </div>
                 `;
+
+                const mobileBackReadonlyBtn = document.getElementById('mobile-back-readonly-btn');
+                if (mobileBackReadonlyBtn) {
+                    mobileBackReadonlyBtn.addEventListener('click', () => {
+                        state.mobileView = 'list';
+                        syncMobilePaneVisibility();
+                    });
+                }
             }
         }
 
         function renderAll() {
+            syncMobilePaneVisibility();
             renderFilterTabs();
             renderTaskletList();
             renderDetailPane();
@@ -1922,6 +2062,14 @@
                 const end = taskNameInput.selectionEnd;
                 taskNameInput.value = capitalizeFirst(val);
                 taskNameInput.setSelectionRange(start, end);
+            }
+        });
+
+        // Submit form on Enter key inside the 2-line Task Name box
+        taskNameInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                addTaskletForm.requestSubmit();
             }
         });
 
@@ -1983,6 +2131,7 @@
             state.currentPage = 1;
             state.selectedId = newTasklet.id;
             state.rightPanelMode = 'tasklet';
+            state.mobileView = 'list';
             state.showInlineWarning = false;
 
             syncTaskletToCloud(newTasklet);
